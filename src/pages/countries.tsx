@@ -6,6 +6,7 @@ import {
   Typography,
   Box,
   Alert,
+  Autocomplete,
 } from "@mui/material";
 import { getCountry } from "@/requests";
 import { IDataCovidCountry } from "@/types";
@@ -13,7 +14,26 @@ import ButtonReturnHome from "@/components/ButtonReturnHome";
 import CardItem from "@/components/CardItem";
 import { Template } from "@/components/Template";
 
-//Busca por País, quando não há resposta, devolve um aviso
+// Mapeamento de países
+const countriesMap: Record<string, string> = {
+  Brasil: "Brazil",
+  Alemanha: "Germany",
+  França: "France",
+  Itália: "Italy",
+  Espanha: "Spain",
+  Inglaterra: "United Kingdom",
+  Canadá: "Canada",
+  Argentina: "Argentina",
+  China: "China",
+  Japão: "Japan",
+  Índia: "India",
+  México: "Mexico",
+  Portugal: "Portugal",
+  Rússia: "Russia",
+  Austrália: "Australia",
+};
+
+// Seleção de países para obter dados do mesmo.
 
 export default function CountriesPage() {
   const [country, setCountry] = React.useState("");
@@ -25,8 +45,10 @@ export default function CountriesPage() {
   >("INITIAL");
 
   const fetchData = async () => {
+    const countryInEnglish = countriesMap[country];
+
     try {
-      const { data: dataResponse, status } = await getCountry(country);
+      const { data: dataResponse, status } = await getCountry(countryInEnglish);
 
       if ([200, 201].includes(status)) {
         setStatusSearch("ISSEARCHED");
@@ -57,20 +79,27 @@ export default function CountriesPage() {
             flexDirection: "row",
             gap: "40px",
             margin: "15px 0",
+            width: "50%",
           }}
         >
-          <TextField
-            label="Nome do País"
-            onChange={(e) => setCountry(e.target.value)}
+          <Autocomplete
+            options={Object.keys(countriesMap)}
+            sx={{ width: "100%" }}
+            renderInput={(params) => (
+              <TextField {...params} label="Nome do País" fullWidth />
+            )}
+            onChange={(_, value) => setCountry(value || "")}
           />
           <Button onClick={fetchData} variant="contained">
             Buscar
           </Button>
         </Box>
+
         {data && data.country && <CardItem data={data} />}
         {statusSearch !== "INITIAL" && data && !data.country && (
           <Alert severity="info">País não encontrado</Alert>
         )}
+
         <ButtonReturnHome />
       </Container>
     </Template>
